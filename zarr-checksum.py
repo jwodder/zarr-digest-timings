@@ -210,7 +210,6 @@ def threaded_walk2(
             threads -= 1
 
 
-
 WALKERS = {
     "sync": sync_walk,
     "threads": threaded_walk,
