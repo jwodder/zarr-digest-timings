@@ -147,7 +147,9 @@ def threaded_walk(dirpath: Path, threads=DEFAULT_THREADS) -> Iterable[Tuple[Path
             threads -= 1
 
 
-def threaded_walk2(dirpath: Path, threads=DEFAULT_THREADS) -> Iterable[Tuple[Path, str]]:
+def threaded_walk2(
+    dirpath: Path, threads=DEFAULT_THREADS
+) -> Iterable[Tuple[Path, str]]:
     if not os.path.isdir(dirpath):
         return
     lock = threading.Lock()
