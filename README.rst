@@ -43,6 +43,12 @@ Arguments
 
         __ https://gist.github.com/jart/0a71cde3ca7261f77080a3625a21672b
 
+    ``async``
+        Like ``sync``, but walks the directory asynchronously using trio_.  The
+        number of workers is controlled by the ``--threads`` option.
+
+        .. _trio: https://github.com/python-trio/trio
+
     ``recursive``
         Walks the directory tree depth-first using recursion
 

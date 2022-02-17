@@ -17,6 +17,10 @@ def threads(session):
 
 def zarr_checksum(session, fscacher_req):
     session.install(
-        "argset ~= 0.1", "click >= 8.0", "dandischema >= 0.5.1", fscacher_req
+        "argset ~= 0.1",
+        "click >= 8.0",
+        "dandischema >= 0.5.1",
+        "trio >= 0.19",
+        fscacher_req,
     )
     session.run("python", "zarr-digest-timings.py", *session.posargs)
