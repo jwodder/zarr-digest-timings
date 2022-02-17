@@ -15,6 +15,17 @@ def threads(session):
     zarr_checksum(session, "fscacher @ git+https://github.com/con/fscacher@gh-66")
 
 
+@nox.session
+def report2table(session):
+    """Convert a report file to a reStructuredText table"""
+    session.install(
+        "dandischema >= 0.5.1",
+        "trio >= 0.19",
+        "fscacher",
+    )
+    session.run("python", "report2table.py", *session.posargs)
+
+
 def zarr_checksum(session, fscacher_req):
     session.install(
         "argset ~= 0.1",
