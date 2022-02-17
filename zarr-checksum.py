@@ -17,7 +17,7 @@ import os.path
 from pathlib import Path
 import threading
 from timeit import timeit
-from typing import Dict, Iterable, Optional, Tuple, Union
+from typing import Dict, Iterable, Tuple, Union
 import click
 from dandischema.digests.zarr import get_checksum
 from fscacher import PersistentCache
@@ -33,24 +33,16 @@ log = logging.getLogger()
 
 @dataclass
 class ZarrChecksummer(ABC):
+    cache: PersistentCache
     threads: int = DEFAULT_THREADS
     cache_files: bool = False
-    clear_cache: bool = True
-    cache: Optional[PersistentCache] = field(default=None, init=False)
 
     def __post_init__(self) -> None:
         if self.cache_files:
-            self.ensure_cache()
             self.md5digest = self.cache.memoize_path(self.md5digest)
 
-    def ensure_cache(self) -> None:
-        if self.cache is None:
-            self.cache = PersistentCache(CACHE_NAME)
-            if self.clear_cache:
-                self.cache.clear()
-
     @abstractmethod
-    def checksum(self, dirpath: Path) -> str:
+    def checksum(self, dirpath: Union[str, Path]) -> str:
         ...
 
     @staticmethod
@@ -89,10 +81,10 @@ class File:
 
 class IterativeChecksummer(ZarrChecksummer):
     @abstractmethod
-    def digest_walk(self, dirpath: Path) -> Iterable[Tuple[Path, str]]:
+    def digest_walk(self, dirpath: Union[str, Path]) -> Iterable[Tuple[Path, str]]:
         ...
 
-    def checksum(self, dirpath: Path) -> str:
+    def checksum(self, dirpath: Union[str, Path]) -> str:
         root = Directory(path="")
         for p, digest in self.digest_walk(dirpath):
             *dirs, name = p.relative_to(dirpath).parts
@@ -110,8 +102,8 @@ class IterativeChecksummer(ZarrChecksummer):
 
 
 class SyncWalker(IterativeChecksummer):
-    def digest_walk(self, dirpath: Path) -> Iterable[Tuple[Path, str]]:
-        dirs = deque([dirpath])
+    def digest_walk(self, dirpath: Union[str, Path]) -> Iterable[Tuple[Path, str]]:
+        dirs = deque([Path(dirpath)])
         while dirs:
             for p in dirs.popleft().iterdir():
                 if p.is_dir():
@@ -121,7 +113,7 @@ class SyncWalker(IterativeChecksummer):
 
 
 class ThreadedWalker(IterativeChecksummer):
-    def digest_walk(self, dirpath: Path) -> Iterable[Tuple[Path, str]]:
+    def digest_walk(self, dirpath: Union[str, Path]) -> Iterable[Tuple[Path, str]]:
         if not os.path.isdir(dirpath):
             return
         lock = threading.Lock()
@@ -194,6 +186,13 @@ CLASSES = {
 
 @click.command()
 @click.option(
+    "-c",
+    "--cache",
+    "do_cache",
+    is_flag=True,
+    help="Use fscacher to cache the Zarr directory checksumming routine",
+)
+@click.option(
     "-C",
     "--cache-files",
     is_flag=True,
@@ -214,22 +213,29 @@ CLASSES = {
 def main(
     dirpath: Path,
     implementation: str,
+    number: int,
     threads: int,
+    do_cache: bool,
     cache_files: bool,
     clear_cache: bool,
-    number: int,
 ) -> None:
+    cache = PersistentCache(CACHE_NAME)
+    if clear_cache:
+        cache.clear()
     summer = CLASSES[implementation](
-        threads=threads, cache_files=cache_files, clear_cache=clear_cache
+        cache=cache, threads=threads, cache_files=cache_files
     )
     if number <= 0:
         print(summer.checksum(dirpath))
     else:
+        func = summer.checksum
+        if do_cache:
+            func = cache.memoize_path(func)
         print(
             timeit(
-                "summer.checksum(dirpath)",
+                "func(dirpath)",
                 number=number,
-                globals={"summer": summer, "dirpath": dirpath},
+                globals={"func": func, "dirpath": dirpath},
             )
             / number
         )
