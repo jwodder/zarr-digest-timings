@@ -18,6 +18,7 @@ from pathlib import Path
 import threading
 from timeit import timeit
 from typing import Dict, Iterable, Tuple, Union
+from argset import argset
 import click
 from dandischema.digests.zarr import get_checksum
 from fscacher import PersistentCache
@@ -219,7 +220,11 @@ def main(
     cache_files: bool,
     clear_cache: bool,
 ) -> None:
-    cache = PersistentCache(CACHE_NAME)
+    if "walk_threads" in argset(PersistentCache):
+        kwargs = {"walk_threads": threads}
+    else:
+        kwargs = {}
+    cache = PersistentCache(CACHE_NAME, **kwargs)
     if clear_cache:
         cache.clear()
     summer = CLASSES[implementation](
