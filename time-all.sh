@@ -40,16 +40,16 @@ nox -e nothreads -- -R "$report" $base_opts "$dirpath" fastio
 nox -e nothreads -- -R "$report" $base_opts "$dirpath" recursive
 nox -e nothreads -- -R "$report" $base_opts "$dirpath" async
 
-for env in threads nothreads
+nox -e nothreads -- -R "$report" $base_opts --cache-files "$dirpath" sync
+nox -e nothreads -- -R "$report" $base_opts --cache-files "$dirpath" fastio
+nox -e nothreads -- -R "$report" $base_opts --cache-files "$dirpath" recursive
+
+for env in nothreads threads
 do
     nox -e "$env" -- -R "$report" $base_opts --cache "$dirpath" sync
     nox -e "$env" -- -R "$report" $base_opts --cache "$dirpath" fastio
     nox -e "$env" -- -R "$report" $base_opts --cache "$dirpath" recursive
     nox -e "$env" -- -R "$report" $base_opts --cache "$dirpath" async
-
-    nox -e "$env" -- -R "$report" $base_opts --cache-files "$dirpath" sync
-    nox -e "$env" -- -R "$report" $base_opts --cache-files "$dirpath" fastio
-    nox -e "$env" -- -R "$report" $base_opts --cache-files "$dirpath" recursive
 
     nox -e "$env" -- -R "$report" $base_opts --cache --cache-files "$dirpath" sync
     nox -e "$env" -- -R "$report" $base_opts --cache --cache-files "$dirpath" fastio
