@@ -224,8 +224,21 @@ CLASSES = {
     help="Clear cache on program startup",
     show_default=True,
 )
-@click.option("-n", "--number", default=100, show_default=True)
-@click.option("-T", "--threads", type=int, default=DEFAULT_THREADS, show_default=True)
+@click.option(
+    "-n",
+    "--number",
+    default=100,
+    show_default=True,
+    help="Number of times to run the function",
+)
+@click.option(
+    "-T",
+    "--threads",
+    type=int,
+    default=DEFAULT_THREADS,
+    show_default=True,
+    help="Number of threads to use when walking directory trees",
+)
 @click.argument(
     "dirpath", type=click.Path(exists=True, file_okay=False, path_type=Path)
 )
