@@ -19,7 +19,7 @@ def zarr_checksum(session, fscacher_req):
     session.install(
         "argset ~= 0.1", "click >= 8.0", "dandischema >= 0.5.1", fscacher_req
     )
-    session.run("python", "zarr-checksum.py", *session.posargs)
+    session.run("python", "zarr-digest-timings.py", *session.posargs)
 
 
 @nox.session
