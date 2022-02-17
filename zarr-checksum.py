@@ -34,12 +34,12 @@ log = logging.getLogger()
 @dataclass
 class ZarrChecksummer(ABC):
     threads: int = DEFAULT_THREADS
-    cache_digester: bool = False
+    cache_files: bool = False
     clear_cache: bool = True
     cache: Optional[PersistentCache] = field(default=None, init=False)
 
     def __post_init__(self) -> None:
-        if self.cache_digester:
+        if self.cache_files:
             self.ensure_cache()
             self.md5digest = self.cache.memoize_path(self.md5digest)
 
@@ -193,8 +193,18 @@ CLASSES = {
 
 
 @click.command()
-@click.option("-C", "--cache-digester", is_flag=True)
-@click.option("--clear-cache/--no-clear-cache", default=True)
+@click.option(
+    "-C",
+    "--cache-files",
+    is_flag=True,
+    help="Use fscacher to cache digests for individual files",
+)
+@click.option(
+    "--clear-cache/--no-clear-cache",
+    default=True,
+    help="Clear cache on program startup",
+    show_default=True,
+)
 @click.option("-n", "--number", default=100, show_default=True)
 @click.option("-T", "--threads", type=int, default=DEFAULT_THREADS, show_default=True)
 @click.argument(
@@ -205,12 +215,12 @@ def main(
     dirpath: Path,
     implementation: str,
     threads: int,
-    cache_digester: bool,
+    cache_files: bool,
     clear_cache: bool,
     number: int,
 ) -> None:
     summer = CLASSES[implementation](
-        threads=threads, cache_digester=cache_digester, clear_cache=clear_cache
+        threads=threads, cache_files=cache_files, clear_cache=clear_cache
     )
     if number <= 0:
         print(summer.checksum(dirpath))
