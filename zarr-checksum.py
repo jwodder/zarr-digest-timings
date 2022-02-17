@@ -4,6 +4,7 @@ from __future__ import annotations
 __requires__ = [
     "click >= 8.0",
     "dandischema >= 0.5.1",
+    "fscacher",
 ]
 
 from abc import ABC, abstractmethod
@@ -15,24 +16,53 @@ import os
 import os.path
 from pathlib import Path
 import threading
-from typing import Dict, Iterable, Tuple, Union
+from typing import Dict, Iterable, Optional, Tuple, Union
 import click
 from dandischema.digests.zarr import get_checksum
+from fscacher import PersistentCache
 
 DIGEST_BLOCK_SIZE = 1 << 16
 
 DEFAULT_THREADS = min(32, (os.cpu_count() or 1) + 4)
+
+CACHE_NAME = "zarr-digest-timings"
 
 log = logging.getLogger()
 
 
 @dataclass
 class ZarrChecksummer(ABC):
-    threads: int = field(default=DEFAULT_THREADS)
+    threads: int = DEFAULT_THREADS
+    cache_digester: bool = False
+    cache: Optional[PersistentCache] = field(default=None, init=False)
+
+    def __post_init__(self) -> None:
+        if self.cache_digester:
+            self.ensure_cache()
+            self.md5digest = self.cache.memoize_path(self.md5digest)
+
+    def ensure_cache(self) -> None:
+        if self.cache is None:
+            self.cache = PersistentCache(CACHE_NAME)
+
+    def clear_cache(self) -> None:
+        if self.cache is not None:
+            self.cache.clear()
 
     @abstractmethod
     def checksum(self, dirpath: Path) -> str:
         ...
+
+    @staticmethod
+    def md5digest(filepath: Union[str, Path]) -> str:
+        dgst = md5()
+        with open(filepath, "rb") as fp:
+            while True:
+                block = fp.read(DIGEST_BLOCK_SIZE)
+                if not block:
+                    break
+                dgst.update(block)
+        return dgst.hexdigest()
 
 
 @dataclass
@@ -79,17 +109,6 @@ class IterativeChecksummer(ZarrChecksummer):
         return root.get_digest()
 
 
-def md5digest(filepath: Union[str, Path]) -> str:
-    dgst = md5()
-    with open(filepath, "rb") as fp:
-        while True:
-            block = fp.read(DIGEST_BLOCK_SIZE)
-            if not block:
-                break
-            dgst.update(block)
-    return dgst.hexdigest()
-
-
 class SyncWalker(IterativeChecksummer):
     def digest_walk(self, dirpath: Path) -> Iterable[Tuple[Path, str]]:
         dirs = deque([dirpath])
@@ -98,7 +117,7 @@ class SyncWalker(IterativeChecksummer):
                 if p.is_dir():
                     dirs.append(p)
                 else:
-                    yield (p, md5digest(p))
+                    yield (p, self.md5digest(p))
 
 
 class ThreadedWalker(IterativeChecksummer):
@@ -136,7 +155,7 @@ class ThreadedWalker(IterativeChecksummer):
                                 paths.append(subpath)
                                 on_input.notify()
                         else:
-                            digest = md5digest(subpath)
+                            digest = self.md5digest(subpath)
                             with lock:
                                 output.append((Path(subpath), digest))
                                 on_output.notify()
@@ -201,7 +220,7 @@ class ThreadedWalker2(IterativeChecksummer):
                                 paths.append(os.path.join(path, item))
                                 on_input.notify()
                     else:
-                        digest = md5digest(path)
+                        digest = self.md5digest(path)
                         with lock:
                             output.append((Path(path), digest))
                             on_output.notify()
@@ -240,14 +259,18 @@ CLASSES = {
 
 
 @click.command()
+@click.option("-C", "--cache-digester", is_flag=True)
 @click.option("-T", "--threads", type=int, default=DEFAULT_THREADS, show_default=True)
 @click.argument(
     "dirpath", type=click.Path(exists=True, file_okay=False, path_type=Path)
 )
 @click.argument("implementation", type=click.Choice(list(CLASSES)))
-def main(dirpath: Path, implementation: str, threads: int) -> None:
-    summer = CLASSES[implementation](threads=threads)
+def main(
+    dirpath: Path, implementation: str, threads: int, cache_digester: bool
+) -> None:
+    summer = CLASSES[implementation](threads=threads, cache_digester=cache_digester)
     print(summer.checksum(dirpath))
+    summer.clear_cache()
 
 
 if __name__ == "__main__":
