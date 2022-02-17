@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
+import argparse
 import json
 import logging
 from pathlib import Path
 import random
-from typing import Optional, TextIO
-import click
+from typing import Optional
 
 log = logging.getLogger(__name__)
 
@@ -73,20 +73,21 @@ def create_tree(root: Path, layout):
                         mkfile(d / f"f{x}.dat", filespec)
 
 
-@click.command()
-@click.argument("dirpath", type=click.Path(file_okay=False, path_type=Path))
-@click.argument("specfile", type=click.File())
-def main(dirpath: Path, specfile: TextIO) -> None:
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("dirpath", type=Path)
+    parser.add_argument("specfile", type=argparse.FileType())
+    args = parser.parse_args()
     logging.basicConfig(
         format="%(asctime)s [%(levelname)-8s] %(message)s",
         datefmt="%Y-%m-%d %H:%M:%S",
         level=logging.INFO,
     )
-    with specfile:
-        layout = json.load(specfile)
-    log.info("Creating directory %s", dirpath)
-    dirpath.mkdir(parents=True, exist_ok=True)
-    create_tree(dirpath, layout)
+    with args.specfile:
+        layout = json.load(args.specfile)
+    log.info("Creating directory %s", args.dirpath)
+    args.dirpath.mkdir(parents=True, exist_ok=True)
+    create_tree(args.dirpath, layout)
 
 
 if __name__ == "__main__":

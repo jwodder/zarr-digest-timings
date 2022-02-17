@@ -20,10 +20,3 @@ def zarr_checksum(session, fscacher_req):
         "argset ~= 0.1", "click >= 8.0", "dandischema >= 0.5.1", fscacher_req
     )
     session.run("python", "zarr-digest-timings.py", *session.posargs)
-
-
-@nox.session
-def mktree(session):
-    """Generate a sample tree"""
-    session.install("click >= 8.0")
-    session.run("python", "mktree.py", *session.posargs)
