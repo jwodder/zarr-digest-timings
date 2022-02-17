@@ -99,7 +99,7 @@ def main(
         kwargs = {}
         threaded_fscacher = False
     cache = PersistentCache(CACHE_NAME, **kwargs)
-    if clear_cache:
+    if (do_cache or cache_files) and clear_cache:
         log.info("Clearing cache ...")
         cache.clear()
         log.info("Cache cleared")
