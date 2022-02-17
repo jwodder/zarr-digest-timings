@@ -17,7 +17,7 @@ import os.path
 from pathlib import Path
 import threading
 from timeit import timeit
-from typing import Dict, Iterable, Tuple, Union
+from typing import Dict, Iterable, Optional, Tuple, Union
 from argset import argset
 import click
 from dandischema.digests.zarr import get_checksum
@@ -179,9 +179,28 @@ class ThreadedWalker(IterativeChecksummer):
                 threads -= 1
 
 
+class RecursiveChecksummer(ZarrChecksummer):
+    def checksum(
+        self, dirpath: Union[str, Path], root: Optional[Union[str, Path]] = None
+    ) -> str:
+        recurse = getattr(self, "recurse", self.checksum)
+        files = {}
+        dirs = {}
+        if root is None:
+            root = Path(dirpath)
+        for p in Path(dirpath).iterdir():
+            key = p.relative_to(root).as_posix()
+            if p.is_dir():
+                dirs[key] = recurse(p, root)
+            else:
+                files[key] = self.md5digest(p)
+        return get_checksum(files, dirs)
+
+
 CLASSES = {
     "sync": SyncWalker,
-    "threads": ThreadedWalker,
+    "fastio": ThreadedWalker,
+    "recursive": RecursiveChecksummer,
 }
 
 
@@ -236,6 +255,8 @@ def main(
         func = summer.checksum
         if do_cache:
             func = cache.memoize_path(func)
+            if implementation == "recursive":
+                summer.recurse = func
         print(
             timeit(
                 "func(dirpath)",
