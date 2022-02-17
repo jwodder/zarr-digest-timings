@@ -47,7 +47,8 @@ Arguments
 
     ``async``
         Like ``sync``, but walks the directory asynchronously using trio_.  The
-        number of workers is controlled by the ``--threads`` option.
+        number of workers is controlled by the ``--threads`` option.  This
+        implementation is not affected by ``--cache-files``.
 
         .. _trio: https://github.com/python-trio/trio
 
