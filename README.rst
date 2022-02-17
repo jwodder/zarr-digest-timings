@@ -84,6 +84,11 @@ Options
                                 the number of CPU cores plus 4, to a maximum of
                                 32.
 
+-v, --verbose                   Log the result of each function call with a
+                                timestamp as it finishes.  Specify this option
+                                up to two additional times for more debug
+                                logging.
+
 
 ``mktree.py``
 =============
