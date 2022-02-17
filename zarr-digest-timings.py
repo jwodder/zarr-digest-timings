@@ -190,10 +190,10 @@ class RecursiveChecksummer(ZarrChecksummer):
             root = Path(dirpath)
         for p in Path(dirpath).iterdir():
             key = p.relative_to(root).as_posix()
-            if p.is_dir():
-                dirs[key] = recurse(p, root)
-            else:
+            if p.is_file():
                 files[key] = self.md5digest(p)
+            elif any(p.iterdir()):
+                dirs[key] = recurse(p, root)
         return get_checksum(files, dirs)
 
 
