@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+import json
 import os
 from pathlib import Path
 from timeit import timeit
+from typing import Optional
 from argset import argset
 from checksummers import CLASSES
 import click
@@ -41,6 +43,12 @@ CACHE_NAME = "zarr-digest-timings"
     help="Number of times to run the function",
 )
 @click.option(
+    "-R",
+    "--report",
+    type=click.Path(dir_okay=False, writable=True, path_type=Path),
+    help="Append a report as a line of JSON to this file",
+)
+@click.option(
     "-T",
     "--threads",
     type=int,
@@ -60,11 +68,14 @@ def main(
     do_cache: bool,
     cache_files: bool,
     clear_cache: bool,
+    report: Optional[Path],
 ) -> None:
     if "walk_threads" in argset(PersistentCache):
         kwargs = {"walk_threads": threads}
+        threaded_fscacher = True
     else:
         kwargs = {}
+        threaded_fscacher = False
     cache = PersistentCache(CACHE_NAME, **kwargs)
     if clear_cache:
         cache.clear()
@@ -79,7 +90,7 @@ def main(
             func = cache.memoize_path(func)
             if implementation == "recursive":
                 summer.recurse = func
-        print(
+        avgtime = (
             timeit(
                 "func(dirpath)",
                 number=number,
@@ -87,6 +98,20 @@ def main(
             )
             / number
         )
+        print(avgtime)
+        if report is not None:
+            data = {
+                "dirpath": str(dirpath),
+                "implementation": implementation,
+                "threaded_fscacher": threaded_fscacher,
+                "number": number,
+                "avgtime": avgtime,
+                "threads": threads,
+                "caching": do_cache,
+                "caching_files": cache_files,
+            }
+            with report.open("a") as fp:
+                print(json.dumps(data), file=fp)
 
 
 if __name__ == "__main__":

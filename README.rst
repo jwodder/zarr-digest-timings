@@ -73,6 +73,10 @@ Options
                                 print out the checksum without any timing.
                                 [default: 100]
 
+-R FILE, --report FILE          Append a report of the run, containing the
+                                average time and the various input parameters,
+                                as a line of JSON to the given file
+
 -T INT, --threads INT           Set the number of threads to use when walking a
                                 directory tree.  This affects both the
                                 ``fastio`` implementation and the threaded
