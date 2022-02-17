@@ -16,6 +16,7 @@ import os
 import os.path
 from pathlib import Path
 import threading
+from timeit import timeit
 from typing import Dict, Iterable, Optional, Tuple, Union
 import click
 from dandischema.digests.zarr import get_checksum
@@ -34,6 +35,7 @@ log = logging.getLogger()
 class ZarrChecksummer(ABC):
     threads: int = DEFAULT_THREADS
     cache_digester: bool = False
+    clear_cache: bool = True
     cache: Optional[PersistentCache] = field(default=None, init=False)
 
     def __post_init__(self) -> None:
@@ -44,10 +46,8 @@ class ZarrChecksummer(ABC):
     def ensure_cache(self) -> None:
         if self.cache is None:
             self.cache = PersistentCache(CACHE_NAME)
-
-    def clear_cache(self) -> None:
-        if self.cache is not None:
-            self.cache.clear()
+            if self.clear_cache:
+                self.cache.clear()
 
     @abstractmethod
     def checksum(self, dirpath: Path) -> str:
@@ -260,17 +260,35 @@ CLASSES = {
 
 @click.command()
 @click.option("-C", "--cache-digester", is_flag=True)
+@click.option("--clear-cache/--no-clear-cache", default=True)
+@click.option("-n", "--number", default=100, show_default=True)
 @click.option("-T", "--threads", type=int, default=DEFAULT_THREADS, show_default=True)
 @click.argument(
     "dirpath", type=click.Path(exists=True, file_okay=False, path_type=Path)
 )
 @click.argument("implementation", type=click.Choice(list(CLASSES)))
 def main(
-    dirpath: Path, implementation: str, threads: int, cache_digester: bool
+    dirpath: Path,
+    implementation: str,
+    threads: int,
+    cache_digester: bool,
+    clear_cache: bool,
+    number: int,
 ) -> None:
-    summer = CLASSES[implementation](threads=threads, cache_digester=cache_digester)
-    print(summer.checksum(dirpath))
-    summer.clear_cache()
+    summer = CLASSES[implementation](
+        threads=threads, cache_digester=cache_digester, clear_cache=clear_cache
+    )
+    if number <= 0:
+        print(summer.checksum(dirpath))
+    else:
+        print(
+            timeit(
+                "summer.checksum(dirpath)",
+                number=number,
+                globals={"summer": summer, "dirpath": dirpath},
+            )
+            / number
+        )
 
 
 if __name__ == "__main__":
