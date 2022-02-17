@@ -1,9 +1,11 @@
 #!/usr/bin/env python3
 from __future__ import annotations
+import gc
 import json
 import logging
 import os
 from pathlib import Path
+from time import perf_counter
 from timeit import timeit
 from typing import Optional
 from argset import argset
@@ -114,6 +116,17 @@ def main(
             func = cache.memoize_path(func)
             if implementation == "recursive":
                 summer.recurse = func
+        if (do_cache or cache_files) and clear_cache:
+            gc.disable()
+            start = perf_counter()
+            r = func(dirpath)
+            end = perf_counter()
+            gc.enable()
+            log.info("checksum(%s) = %s", dirpath, r)
+            first_call = end - start
+            print("First (caching) call:", first_call)
+        else:
+            first_call = None
         stmnt = "func(dirpath)"
         namespace = {"func": func, "dirpath": dirpath}
         if verbose:
@@ -127,11 +140,12 @@ def main(
                 "dirpath": str(dirpath),
                 "implementation": implementation,
                 "threaded_fscacher": threaded_fscacher,
-                "number": number,
-                "avgtime": avgtime,
-                "threads": threads,
                 "caching": do_cache,
                 "caching_files": cache_files,
+                "threads": threads,
+                "number": number,
+                "first_call": first_call,
+                "avgtime": avgtime,
             }
             with report.open("a") as fp:
                 print(json.dumps(data), file=fp)

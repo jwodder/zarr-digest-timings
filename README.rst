@@ -15,7 +15,9 @@ Usage
     nox -e <env> -- [<options>] <dirpath> <implementation>
 
 Run a given checksumming function on the given directory a number of times and
-print out the average runtime.
+print out the average runtime.  If caching is in effect and
+``--no-clear-cache`` is not given, the first call (the one that populates the
+cache) will be timed & reported separately.
 
 Arguments
 ---------

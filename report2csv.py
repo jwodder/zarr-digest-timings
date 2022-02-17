@@ -22,6 +22,7 @@ def main() -> None:
                 "caching_files",
                 "threads",
                 "number",
+                "first_call",
                 "avgtime",
             ],
         )
