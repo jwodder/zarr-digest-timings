@@ -186,75 +186,9 @@ class ThreadedWalker(IterativeChecksummer):
                 threads -= 1
 
 
-class ThreadedWalker2(IterativeChecksummer):
-    def digest_walk(self, dirpath: Path) -> Iterable[Tuple[Path, str]]:
-        if not os.path.isdir(dirpath):
-            return
-        lock = threading.Lock()
-        on_input = threading.Condition(lock)
-        on_output = threading.Condition(lock)
-        tasks = 1
-        paths = [dirpath]
-        output = []
-        threads = self.threads
-
-        def worker():
-            nonlocal tasks
-            while True:
-                with lock:
-                    while True:
-                        if not tasks:
-                            output.append(None)
-                            on_output.notify()
-                            return
-                        if not paths:
-                            on_input.wait()
-                            continue
-                        path = paths.pop()
-                        break
-                try:
-                    if os.path.isdir(path):
-                        for item in os.listdir(path):
-                            with lock:
-                                tasks += 1
-                                paths.append(os.path.join(path, item))
-                                on_input.notify()
-                    else:
-                        digest = self.md5digest(path)
-                        with lock:
-                            output.append((Path(path), digest))
-                            on_output.notify()
-                except OSError:
-                    log.exception("Error digesting path %s", path)
-                finally:
-                    with lock:
-                        tasks -= 1
-                        if not tasks:
-                            on_input.notify_all()
-
-        workers = [
-            threading.Thread(
-                target=worker, name=f"fastio.walk {i} {dirpath}", daemon=True
-            )
-            for i in range(threads)
-        ]
-        for w in workers:
-            w.start()
-        while threads or output:
-            with lock:
-                while not output:
-                    on_output.wait()
-                item = output.pop()
-            if item:
-                yield item
-            else:
-                threads -= 1
-
-
 CLASSES = {
     "sync": SyncWalker,
     "threads": ThreadedWalker,
-    "threads2": ThreadedWalker2,
 }
 
 
