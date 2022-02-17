@@ -91,7 +91,7 @@ def main(
         log_level = logging.DEBUG
     elif verbose == 3:
         log_level = 1
-    logging.basicConfig(format="%(asctime)s %(message)s", level=log_level)
+    logging.basicConfig(format="%(asctime)s %(levelname)s %(message)s", level=log_level)
     if "walk_threads" in argset(PersistentCache):
         kwargs = {"walk_threads": threads}
         threaded_fscacher = True
@@ -100,7 +100,9 @@ def main(
         threaded_fscacher = False
     cache = PersistentCache(CACHE_NAME, **kwargs)
     if clear_cache:
+        log.info("Clearing cache ...")
         cache.clear()
+        log.info("Cache cleared")
     summer = CLASSES[implementation](
         cache=cache, threads=threads, cache_files=cache_files
     )
@@ -117,6 +119,7 @@ def main(
         if verbose:
             stmnt = f"r = {stmnt}\nlog.info('checksum(%s) = %s', dirpath, r)"
             namespace["log"] = log
+        log.info("Starting ...")
         avgtime = timeit(stmnt, number=number, globals=namespace) / number
         print(avgtime)
         if report is not None:
