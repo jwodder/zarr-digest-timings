@@ -1,10 +1,33 @@
 from __future__ import annotations
 from collections import deque
+from contextlib import asynccontextmanager
 from hashlib import md5
 from pathlib import Path
-from typing import Iterable, List, Tuple, Union
+import sys
+from typing import (
+    AsyncContextManager,
+    AsyncIterable,
+    AsyncIterator,
+    Generic,
+    Iterable,
+    List,
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+)
 import trio
 from .bases import IterativeChecksummer
+
+T = TypeVar("T")
+
+if sys.version_info >= (3, 10):
+    from contextlib import aclosing
+else:
+    from async_generator import aclosing
+
+    def aiter(obj: AsyncIterable[T]) -> AsyncIterator[T]:
+        return obj.__aiter__()
 
 
 class AsyncWalker(IterativeChecksummer):
@@ -13,7 +36,7 @@ class AsyncWalker(IterativeChecksummer):
 
     async def async_walk(self, dirpath: Path) -> List[Tuple[Path, str]]:
         files = []
-        jobs = deque([dirpath])
+        jobs = AsyncJobStack([dirpath])
         async with trio.open_nursery() as nursery:
             sender, receiver = trio.open_memory_channel(0)
             # We need to limit the number of workers or else we get a "Too many
@@ -28,24 +51,18 @@ class AsyncWalker(IterativeChecksummer):
 
     async def async_worker(
         self,
-        jobs: deque[Path],
+        jobs: AsyncJobStack[Path],
         sender: trio.MemorySendChannel[Tuple[Path, str]],
     ) -> None:
-        async with sender:
-            while jobs:
-                # PROBLEM: It is possible for an async worker to check `jobs`
-                # while it is empty and other workers are still in the middle
-                # of working on a directory, in which case the worker will exit
-                # early, likely leading to one worker being left to pick up
-                # everyone else's slack.  Solving this would likely involve an
-                # async locking queue that keeps track of whether tasks are
-                # done.
-                for p in jobs.popleft().iterdir():
-                    if p.is_dir():
-                        jobs.append(p)
-                    else:
-                        dgst = await self.async_md5digest(p)
-                        await sender.send((p, dgst))
+        async with sender, aclosing(aiter(jobs)) as jobiter:
+            async for ctx in jobiter:
+                async with ctx as dirpath:
+                    for p in dirpath.iterdir():
+                        if p.is_dir():
+                            await jobs.put(p)
+                        else:
+                            dgst = await self.async_md5digest(p)
+                            await sender.send((p, dgst))
 
     @staticmethod
     async def async_md5digest(filepath: Path) -> None:
@@ -57,3 +74,43 @@ class AsyncWalker(IterativeChecksummer):
                     break
                 dgst.update(blob)
         return dgst.hexdigest()
+
+
+class AsyncJobStack(Generic[T]):
+    def __init__(self, iterable: Optional[Iterable[T]] = None) -> None:
+        self._lock = trio.Lock()
+        self._cond = trio.Condition(self._lock)
+        self._queue: deque[T] = deque()
+        self._tasks = 0
+        if iterable is not None:
+            self._queue.extend(iterable)
+            self._tasks += len(self._queue)
+
+    async def __aiter__(self) -> AsyncIterator[AsyncContextManager[T]]:
+        while True:
+            async with self._lock:
+                while True:
+                    if not self._tasks:
+                        return
+                    if not self._queue:
+                        await self._cond.wait()
+                        continue
+                    value = self._queue.pop()
+                    break
+            yield self._job_ctx(value)
+
+    @asynccontextmanager
+    async def _job_ctx(self, value: T) -> AsyncIterator[T]:
+        try:
+            yield value
+        finally:
+            async with self._lock:
+                self._tasks -= 1
+                if self._tasks <= 0:
+                    self._cond.notify_all()
+
+    async def put(self, value: T) -> None:
+        async with self._lock:
+            self._queue.append(value)
+            self._tasks += 1
+            self._cond.notify()

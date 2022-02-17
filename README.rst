@@ -5,6 +5,8 @@ run via nox_, which manages installation of the proper varying dependencies.
 
 .. _nox: https://nox.thea.codes
 
+Python 3.7 or higher is required.
+
 Usage
 =====
 
