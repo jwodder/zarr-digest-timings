@@ -131,3 +131,36 @@ take the following forms:
 All files are created with random bytes as data.
 
 Some sample layout specifications can be found in the ``layouts/`` directory.
+
+
+``report2table``
+================
+
+::
+
+    nox -e report2table -- [<options>] <reportfile>
+
+The ``report2table.py`` script takes a JSON Lines report generated via the
+``--report`` option of ``zarr-digest-timings.py`` and renders it as a
+reStructuredText or GitHub-Flavored Markdown table.  It should be run via nox
+in order to manage its dependencies.
+
+All of the entries in the report should have been generated on the same
+machine.  If any entries were generated on different paths or with different
+numbers of threads, multiple tables will be produced, one for each path-thread
+combination.  If two or more entries were produced by the same configuration,
+their times will be combined.
+
+For configurations that make use of caching, the corresponding cell in the
+resulting table will consist of two times separated by a slash; the first time
+is the runtime of the initial cache-populating call, while the second time is
+the average of the other calls.
+
+Options
+-------
+
+-f <rst|md>, --format <rst|md>  Specify whether to produce a reStructuredText
+                                (``rst``) or Markdown (``md``) table  [default:
+                                ``rst``]
+
+-o FILE, --outfile FILE         Output the tables to the specified file
