@@ -16,7 +16,7 @@ Usage
 
 Run a given checksumming function on the given directory a number of times and
 print out the average runtime.  If caching is in effect and
-``--no-clear-cache`` is not given, the first call (the one that populates the
+``--no-clear-cache`` is not given, an initial function call (populating the
 cache) will be timed & reported separately.
 
 Arguments
@@ -55,7 +55,7 @@ Arguments
         .. _trio: https://github.com/python-trio/trio
 
     ``recursive``
-        Walks the directory tree depth-first using recursion
+        Walks & digests the directory tree depth-first using recursion
 
 Options
 -------
@@ -70,11 +70,12 @@ Options
                                 Whether to clear the cache on program startup
                                 [default: ``--clear-cache``]
 
--n INT, --number INT            Set the number of times to run the function.
-                                As a special case, passing 0 will cause the
-                                script to simply run the function once and
-                                print out the checksum without any timing.
-                                [default: 100]
+-n INT, --number INT            Set the number of times to call the function
+                                (not counting the initial cache-populating
+                                call, if any).  As a special case, passing 0
+                                will cause the script to simply call the
+                                function once and print out the checksum
+                                without any timing.  [default: 100]
 
 -R FILE, --report FILE          Append a report of the run, containing the
                                 average time and the various input parameters,
