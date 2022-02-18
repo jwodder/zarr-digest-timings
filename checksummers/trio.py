@@ -69,7 +69,7 @@ class AsyncWalker(IterativeChecksummer):
         dgst = md5()
         async with await trio.open_file(filepath, "rb") as fp:
             while True:
-                blob = await fp.read1()
+                blob = await fp.read(65535)
                 if not blob:
                     break
                 dgst.update(blob)
