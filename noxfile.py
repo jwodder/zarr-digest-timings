@@ -17,7 +17,7 @@ def threads(session):
 
 @nox.session
 def report2table(session):
-    """Convert a report file to a reStructuredText table"""
+    """Convert a report file to a table"""
     session.install(
         "dandischema >= 0.5.1",
         "trio >= 0.19",

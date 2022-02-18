@@ -4,7 +4,7 @@ from dataclasses import dataclass
 from functools import reduce
 import json
 from operator import add
-from typing import Any, Dict, Iterable, Union
+from typing import Any, Dict, Iterable, List, Union
 from checksummers import CLASSES
 
 
@@ -13,8 +13,11 @@ class TableID:
     dirpath: str
     threads: int
 
-    def __str__(self) -> str:
+    def as_rst(self) -> str:
         return f"``{self.dirpath}``, {self.threads} threads"
+
+    def as_markdown(self) -> str:
+        return f"`{self.dirpath}`, {self.threads} threads"
 
 
 @dataclass(frozen=True)
@@ -103,6 +106,16 @@ LEFT_SIDE = """\
     +---------------------+------------+
 """
 
+LEFT_COLUMN = [
+    "",
+    "No Caching",
+    "Caching Files",
+    "Caching Directories (No Threads)",
+    "Caching Directories (Threads)",
+    "Caching Both (No Threads)",
+    "Caching Both (Threads)",
+]
+
 COLWIDTH = 17  # not counting padding
 CELLDIV = "-" * (COLWIDTH + 2) + "+"
 CELLDIV_HEADER = CELLDIV.replace("-", "=")
@@ -112,12 +125,31 @@ def to_cell(s: str) -> str:
     return " " + s.ljust(COLWIDTH) + " |"
 
 
-def draw_table(
-    table_id: TableID, tbl: Dict[CellID, Union[Average, DualAverage]]
-) -> str:
+def draw_rst(table_id: TableID, columns: List[List[str]]) -> str:
     lines = LEFT_SIDE.splitlines()
+    for cells in columns:
+        newlines = [CELLDIV]
+        for c in cells:
+            newlines.append(to_cell(c))
+            newlines.append(CELLDIV)
+        newlines[2] = CELLDIV_HEADER
+        lines = map(add, lines, newlines)
+    return f".. table:: {table_id.as_rst()}\n\n" + "\n".join(lines)
+
+
+def draw_markdown(table_id: TableID, columns: List[List[str]]) -> str:
+    columns.insert(0, LEFT_COLUMN)
+    lines = []
+    for row in zip(*columns):
+        lines.append("| " + " | ".join(row) + " |")
+    lines.insert(1, "|" + (" --- |" * (len(CLASSES) + 1)))
+    return f"### {table_id.as_markdown()}\n\n" + "\n".join(lines)
+
+
+def extract_columns(tbl: Dict[CellID, Union[Average, DualAverage]]) -> List[List[str]]:
+    columns = []
     for implementation in CLASSES.keys():
-        cells = []
+        cells = [implementation]
         for caching_files in [False, True]:
             values = []
             for threaded in [False, True]:
@@ -147,21 +179,17 @@ def draw_table(
                     cells.append(str(tbl[key]))
                 except KeyError:
                     cells.append("\u2014")
-        newlines = [CELLDIV, to_cell(implementation), CELLDIV_HEADER]
-        for c in cells:
-            newlines.append(to_cell(c))
-            newlines.append(CELLDIV)
-        lines = map(add, lines, newlines)
-    return f".. table:: {table_id}\n\n" + "\n".join(lines)
+        columns.append(cells)
+    return columns
 
 
 def main() -> None:
     parser = argparse.ArgumentParser(
         description=(
-            "Convert a file of JSON Lines zarr-digest-timings reports to a"
-            " reStructuredText table"
+            "Convert a file of JSON Lines zarr-digest-timings reports to a table"
         ),
     )
+    parser.add_argument("-f", "--format", choices=["rst", "md"], default="rst")
     parser.add_argument("-o", "--outfile", type=argparse.FileType("w"), default="-")
     parser.add_argument("report", type=argparse.FileType("r"))
     args = parser.parse_args()
@@ -170,9 +198,16 @@ def main() -> None:
     tables = compile_report(report)
     with args.outfile:
         for table_id, tbl in tables.items():
-            print(draw_table(table_id, tbl), file=args.outfile)
+            columns = extract_columns(tbl)
+            if args.format == "rst":
+                print(draw_rst(table_id, columns), file=args.outfile)
+            else:
+                print(draw_markdown(table_id, columns), file=args.outfile)
             print(file=args.outfile)
-        print(".. vim:set nowrap:", file=args.outfile)
+        if args.format == "rst":
+            print(".. vim:set nowrap:", file=args.outfile)
+        else:
+            print("<!-- vim:set nowrap: -->", file=args.outfile)
 
 
 if __name__ == "__main__":
