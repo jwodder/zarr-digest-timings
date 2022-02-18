@@ -117,6 +117,7 @@ def main(
             if implementation == "recursive":
                 summer.recurse = func
         if (do_cache or cache_files) and clear_cache:
+            log.info("Starting caching call ...")
             gc.disable()
             start = perf_counter()
             r = func(dirpath)
