@@ -37,3 +37,9 @@
 {"dirpath": "zarr128-smallfiles", "implementation": "sync", "threaded_fscacher": true, "caching": true, "caching_files": true, "threads": 12, "number": 5, "first_call": 57.344089544999996, "avgtime": 11.926431947999998}
 {"dirpath": "zarr128-smallfiles", "implementation": "fastio", "threaded_fscacher": true, "caching": true, "caching_files": true, "threads": 12, "number": 5, "first_call": 55.450960886999994, "avgtime": 12.589699881600003}
 {"dirpath": "zarr128-smallfiles", "implementation": "recursive", "threaded_fscacher": true, "caching": true, "caching_files": true, "threads": 12, "number": 5, "first_call": 95.92360344, "avgtime": 10.707270800000003}
+{"dirpath": "zarr128-smallfiles", "implementation": "oothreads", "threaded_fscacher": false, "caching": false, "caching_files": false, "threads": 12, "number": 5, "first_call": null, "avgtime": 3.9649319974}
+{"dirpath": "zarr128-smallfiles", "implementation": "oothreads", "threaded_fscacher": false, "caching": false, "caching_files": true, "threads": 12, "number": 5, "first_call": 39.256885206, "avgtime": 20.0774551784}
+{"dirpath": "zarr128-smallfiles", "implementation": "oothreads", "threaded_fscacher": false, "caching": true, "caching_files": false, "threads": 12, "number": 5, "first_call": 15.120910646000002, "avgtime": 9.2126119144}
+{"dirpath": "zarr128-smallfiles", "implementation": "oothreads", "threaded_fscacher": false, "caching": true, "caching_files": true, "threads": 12, "number": 5, "first_call": 51.113782334, "avgtime": 9.174129747799999}
+{"dirpath": "zarr128-smallfiles", "implementation": "oothreads", "threaded_fscacher": true, "caching": true, "caching_files": false, "threads": 12, "number": 5, "first_call": 17.045044178, "avgtime": 11.0741475812}
+{"dirpath": "zarr128-smallfiles", "implementation": "oothreads", "threaded_fscacher": true, "caching": true, "caching_files": true, "threads": 12, "number": 5, "first_call": 79.889404668, "avgtime": 11.654743920799998}

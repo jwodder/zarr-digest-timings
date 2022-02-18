@@ -20,6 +20,7 @@ def report2table(session):
     """Convert a report file to a table"""
     session.install(
         "dandischema >= 0.5.1",
+        "interleave",
         "trio >= 0.19",
         "fscacher",
     )
@@ -31,6 +32,7 @@ def zarr_checksum(session, fscacher_req):
         "argset ~= 0.1",
         "click >= 8.0",
         "dandischema >= 0.5.1",
+        "interleave",
         "trio >= 0.19",
         fscacher_req,
     )

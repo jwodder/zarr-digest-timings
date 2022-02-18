@@ -47,6 +47,9 @@ Arguments
 
         __ https://gist.github.com/jart/0a71cde3ca7261f77080a3625a21672b
 
+    ``oothreads``
+        Like ``fastio``, but rewritten to be more object-oriented
+
     ``trio``
         Like ``sync``, but walks the directory asynchronously using trio_.  The
         number of workers is controlled by the ``--threads`` option.  This
