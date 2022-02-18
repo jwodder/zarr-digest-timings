@@ -8,7 +8,7 @@ from .bases import IterativeChecksummer
 log = logging.getLogger(__name__)
 
 
-class ThreadedWalker(IterativeChecksummer):
+class FastioWalker(IterativeChecksummer):
     def digest_walk(self, dirpath: Union[str, Path]) -> Iterable[Tuple[Path, str]]:
         if not os.path.isdir(dirpath):
             return

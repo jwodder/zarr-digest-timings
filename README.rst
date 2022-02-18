@@ -47,7 +47,7 @@ Arguments
 
         __ https://gist.github.com/jart/0a71cde3ca7261f77080a3625a21672b
 
-    ``async``
+    ``trio``
         Like ``sync``, but walks the directory asynchronously using trio_.  The
         number of workers is controlled by the ``--threads`` option.  This
         implementation is not affected by ``--cache-files``.

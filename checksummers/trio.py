@@ -30,7 +30,7 @@ else:
         return obj.__aiter__()
 
 
-class AsyncWalker(IterativeChecksummer):
+class TrioWalker(IterativeChecksummer):
     def digest_walk(self, dirpath: Union[str, Path]) -> Iterable[Tuple[Path, str]]:
         return trio.run(self.async_walk, Path(dirpath))
 
