@@ -17,7 +17,7 @@ from typing import (
     Union,
 )
 import trio
-from .bases import IterativeChecksummer
+from .bases import DIGEST_BLOCK_SIZE, IterativeChecksummer
 
 T = TypeVar("T")
 
@@ -69,7 +69,7 @@ class AsyncWalker(IterativeChecksummer):
         dgst = md5()
         async with await trio.open_file(filepath, "rb") as fp:
             while True:
-                blob = await fp.read(65535)
+                blob = await fp.read(DIGEST_BLOCK_SIZE)
                 if not blob:
                     break
                 dgst.update(blob)
