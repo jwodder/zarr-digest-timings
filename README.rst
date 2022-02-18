@@ -133,6 +133,34 @@ All files are created with random bytes as data.
 Some sample layout specifications can be found in the ``layouts/`` directory.
 
 
+``time-all.sh``
+===============
+
+::
+
+    bash time-all.sh [<options>] <dirpath>
+
+The bash script ``time-all.sh`` runs ``zarr-digest-timings.py`` with all
+non-redundant configurations against a given directory tree for a given number
+of threads, and it generates a JSON Lines report.
+
+Options
+-------
+
+-n INT                      Set the number of times to run the checksumming
+                            function for each configuration [default: 100]
+
+-R FILE                     Save the report to the given file [default:
+                            ``time-all.json``]
+
+-T INT                      Set the number of threads to use when walking a
+                            directory tree.  See above for the default.
+
+-v                          Increase the verbosity of
+                            ``zarr-digest-timings.py``; can be specified
+                            multiple times
+
+
 ``report2table``
 ================
 
