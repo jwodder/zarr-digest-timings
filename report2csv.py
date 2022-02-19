@@ -17,6 +17,7 @@ def main() -> None:
             [
                 "dirpath",
                 "implementation",
+                "fscacher_version",
                 "threaded_fscacher",
                 "caching",
                 "caching_files",

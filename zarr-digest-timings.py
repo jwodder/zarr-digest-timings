@@ -12,6 +12,7 @@ from argset import argset
 from checksummers import CLASSES
 import click
 from fscacher import PersistentCache
+from fscacher import __version__ as fscacher_version
 
 DEFAULT_THREADS = min(32, (os.cpu_count() or 1) + 4)
 
@@ -140,6 +141,7 @@ def main(
             data = {
                 "dirpath": str(dirpath),
                 "implementation": implementation,
+                "fscacher_version": fscacher_version,
                 "threaded_fscacher": threaded_fscacher,
                 "caching": do_cache,
                 "caching_files": cache_files,
