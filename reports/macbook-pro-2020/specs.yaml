@@ -1,0 +1,4 @@
+arch: x86_64
+cpu: Intel(R) Core(TM) i5-1038NG7 CPU @ 2.00GHz
+num_cpu: 8
+ram: 17179869184  # 16 GiB
