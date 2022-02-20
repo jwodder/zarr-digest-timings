@@ -263,12 +263,11 @@ def get_fscacher_versions() -> Dict[str, OrderedStr]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description=(
-            "Convert a file of JSON Lines zarr-digest-timings reports to a table"
-        ),
+        description="Convert zarr-digest-timings JSON Lines reports to tables",
     )
     parser.add_argument("-f", "--format", choices=["rst", "md"], default="rst")
     parser.add_argument("-o", "--outfile", type=argparse.FileType("w"), default="-")
+    parser.add_argument("-t", "--title")
     parser.add_argument("report", type=argparse.FileType("r"))
     args = parser.parse_args()
     with args.report:
@@ -276,6 +275,10 @@ def main() -> None:
     versions = get_fscacher_versions()
     tables = report2tables(report, versions)
     with args.outfile:
+        if args.title:
+            print(args.title, file=args.outfile)
+            print("=" * len(args.title), file=args.outfile)
+            print(file=args.outfile)
         for tbl in tables:
             if args.format == "rst":
                 print(tbl.as_rst(), file=args.outfile)

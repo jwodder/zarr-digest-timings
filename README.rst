@@ -174,17 +174,16 @@ Options
 
 The ``report2table.py`` script takes a JSON Lines report generated via the
 ``--report`` option of ``zarr-digest-timings.py`` and renders it as a
-reStructuredText or GitHub-Flavored Markdown table.  It should be run via nox
-in order to manage its dependencies.
+reStructuredText or GitHub-Flavored Markdown document containing a series of
+tables.  It should be run via nox in order to manage its dependencies.
 
 All of the entries in the report should have been generated on the same
-machine.  If any entries were generated on different paths or with different
-numbers of threads, multiple tables will be produced, one for each path-thread
-combination.  If two or more entries were produced by the same configuration,
-their times will be combined.
+machine.  Entries generated on different paths or using different
+implementations will be grouped into distinct tables.  If two or more entries
+were produced by the same configuration, their times will be combined.
 
 For configurations that make use of caching, the corresponding cell in the
-resulting table will consist of two times separated by a slash; the first time
+resulting tables will consist of two times separated by a slash; the first time
 is the runtime of the initial cache-populating call, while the second time is
 the average of the other calls.
 
@@ -192,7 +191,9 @@ Options
 -------
 
 -f <rst|md>, --format <rst|md>  Specify whether to produce a reStructuredText
-                                (``rst``) or Markdown (``md``) table  [default:
-                                ``rst``]
+                                (``rst``) or Markdown (``md``) document
+                                [default: ``rst``]
 
--o FILE, --outfile FILE         Output the tables to the specified file
+-o FILE, --outfile FILE         Output to the specified file
+
+-t TEXT, --title TEXT           Set a title for the document
