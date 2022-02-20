@@ -20,9 +20,11 @@ def report2table(session):
     """Convert a report file to a table"""
     session.install(
         "dandischema >= 0.5.1",
-        "interleave",
-        "trio >= 0.19",
         "fscacher",
+        "interleave",
+        "pydantic",
+        "trio >= 0.19",
+        "txtble ~= 0.12",
     )
     session.run("python", "report2table.py", *session.posargs)
 

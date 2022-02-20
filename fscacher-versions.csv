@@ -1,7 +1,7 @@
-version,description
-0.1.6,baseline version
-0.1.6+18.g7f16b96,PR #67 after three commits
-0.1.6+16.g5378dfd,PR #70 (original commit)
-0.1.6+18.g7e0bce9,PR #70 (after rebasing for #72)
-0.1.6+16.geac1665,PR #71 (original commit)
-0.1.6+18.g91b87d7,PR #71 (after rebasing for #72)
+version,name,notes
+0.1.6,baseline,
+0.1.6+18.g7f16b96,PR #67,at three commits
+0.1.6+16.g5378dfd,PR #70,original commit
+0.1.6+18.g7e0bce9,PR #70,after rebasing for #72
+0.1.6+16.geac1665,PR #71,original commit
+0.1.6+18.g91b87d7,PR #71,after rebasing for #72

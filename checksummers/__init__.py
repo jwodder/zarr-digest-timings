@@ -11,3 +11,6 @@ CLASSES = {
     "trio": TrioWalker,
     "recursive": RecursiveChecksummer,
 }
+
+# Classes that are affected by the `threads` parameter
+THREADED_CLASSES = {"fastio", "oothreads", "trio"}
