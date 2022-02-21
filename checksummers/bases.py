@@ -58,23 +58,35 @@ class File:
     digest: str
 
 
+@dataclass
+class ZarrChecksumCompiler:
+    dirpath: Path
+    root: Directory = field(default_factory=lambda: Directory(path=""), init=False)
+
+    def add(self, path: Path, digest: str) -> None:
+        *dirs, name = path.relative_to(self.dirpath).parts
+        parts = []
+        d = self.root
+        for dirname in dirs:
+            parts.append(dirname)
+            d = d.children.setdefault(dirname, Directory(path="/".join(parts)))
+            assert isinstance(d, Directory), f"Path type conflict for {d.name}"
+        parts.append(name)
+        pstr = "/".join(parts)
+        assert name not in d.children, f"File {pstr} encountered twice"
+        d.children[name] = File(path=pstr, digest=digest)
+
+    def get_digest(self) -> str:
+        return self.root.get_digest()
+
+
 class IterativeChecksummer(ZarrChecksummer):
     @abstractmethod
     def digest_walk(self, dirpath: Union[str, Path]) -> Iterable[Tuple[Path, str]]:
         ...
 
     def checksum(self, dirpath: Union[str, Path]) -> str:
-        root = Directory(path="")
-        for p, digest in self.digest_walk(dirpath):
-            *dirs, name = p.relative_to(dirpath).parts
-            parts = []
-            d = root
-            for dirname in dirs:
-                parts.append(dirname)
-                d = d.children.setdefault(dirname, Directory(path="/".join(parts)))
-                assert isinstance(d, Directory), f"Path type conflict for {d.name}"
-            parts.append(name)
-            path = "/".join(parts)
-            assert name not in d.children, f"File {path} yielded twice"
-            d.children[name] = File(path=path, digest=digest)
-        return root.get_digest()
+        zcc = ZarrChecksumCompiler(Path(dirpath))
+        for path, digest in self.digest_walk(dirpath):
+            zcc.add(path, digest)
+        return zcc.get_digest()

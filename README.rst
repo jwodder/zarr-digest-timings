@@ -57,6 +57,11 @@ Arguments
 
         .. _trio: https://github.com/python-trio/trio
 
+    ``trio3``
+        A variant of ``trio`` that runs the MD5 digestion function for each
+        file in a thread.  This implementation *is* affected by
+        ``--cache-files``.
+
     ``recursive``
         Walks & digests the directory tree depth-first using recursion
 
