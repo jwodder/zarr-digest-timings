@@ -1,0 +1,1 @@
+{"dirpath": "zarr128-bigfiles", "implementation": "trio2", "fscacher_version": "0.1.6", "threaded_fscacher": false, "caching": false, "caching_files": false, "threads": 5, "number": 10, "first_call": null, "avgtime": 107.0556650272978}
