@@ -1,10 +1,11 @@
 version,name,notes
-0.1.6,baseline,
+0.1.6,v0.1.6,
 0.1.6+18.g7f16b96,PR #67,at three commits
 0.1.6+28.g9c106fc,PR #67 w/`xor_bytes`,
 0.1.6+16.g5378dfd,PR #70,original commit
 0.1.6+18.g7e0bce9,PR #70,after rebasing for #72
 0.1.6+16.geac1665,PR #71,original commit
 0.1.6+18.g91b87d7,PR #71,after rebasing for #72
-0.1.6+19.g7c1ca60,PR #71 (`xor_bytes`),after trying to optimize the bytes XORing
-0.1.6+25.g3c4b426,PR #71 (`xor_bytes`),after merging into master
+0.1.6+19.g7c1ca60,v0.2.0,PR #71 after optimizing the bytes XORing
+0.1.6+25.g3c4b426,v0.2.0,PR #71 after merging into master
+0.2.0,v0.2.0,

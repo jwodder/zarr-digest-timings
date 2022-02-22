@@ -23,11 +23,12 @@ Arguments
 ---------
 
 ``<env>``
-    The nox environment in which to run the script; can be either
-    ``nothreads``, which uses the non-threaded fscacher 0.1.6, or ``threads``,
-    which uses the threaded implementation on the `gh-66 branch`_.  (Note that
-    neither version of fscacher will have any effect by default unless the
-    ``-c`` or ``-C`` option is passed to the script.)
+    The nox environment in which to run the script; can be ``nothreads``, which
+    uses the non-threaded fscacher 0.1.6; ``threads``, which uses the threaded
+    implementation on the `gh-66 branch`_; or ``xor_bytes``, which uses the
+    more efficient directory fingerprinting introduced in v0.2.0.  (Note that
+    no version of fscacher will have any effect by default unless the ``-c`` or
+    ``-C`` option is passed to the script.)
 
     .. _gh-66 branch: https://github.com/con/fscacher/pull/67
 

@@ -16,6 +16,15 @@ def threads(session):
 
 
 @nox.session
+def xor_bytes(session):
+    """
+    Run zarr-checksum.py using a version of fscacher that efficiently
+    fingerprints directories
+    """
+    zarr_checksum(session, "fscacher==0.2.0")
+
+
+@nox.session
 def report2table(session):
     """Convert a report file to a table"""
     session.install(
