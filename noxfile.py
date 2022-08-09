@@ -28,7 +28,7 @@ def xor_bytes(session):
 def report2table(session):
     """Convert a report file to a table"""
     session.install(
-        "dandischema >= 0.5.1",
+        "dandischema ~= 0.5.1",
         "fscacher",
         "interleave",
         "pydantic",
@@ -42,7 +42,7 @@ def zarr_checksum(session, fscacher_req):
     session.install(
         "argset ~= 0.1",
         "click >= 8.0",
-        "dandischema >= 0.5.1",
+        "dandischema ~= 0.5.1",
         "interleave",
         "trio >= 0.19",
         fscacher_req,
