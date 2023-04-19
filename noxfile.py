@@ -31,7 +31,7 @@ def report2table(session):
         "dandischema ~= 0.5.1",
         "fscacher",
         "interleave",
-        "pydantic",
+        "pydantic ~= 1.7",
         "trio >= 0.19",
         "txtble ~= 0.12",
     )
